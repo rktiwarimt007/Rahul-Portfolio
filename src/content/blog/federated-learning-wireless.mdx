@@ -1,0 +1,55 @@
+---
+title: "From DQN to PPO: RL for Beam Management in Massive MIMO"
+date: "2024-12-05"
+readTime: "12 min read"
+tags: ["Reinforcement Learning", "MIMO", "5G"]
+excerpt: "A walkthrough of formulating massive MIMO beam management as an MDP, comparing DQN vs PPO agents on spectral efficiency and convergence speed."
+---
+
+# From DQN to PPO: RL for Beam Management
+
+Beam management in massive MIMO is the problem of selecting the best beamforming vector from a codebook to maximize signal quality to a moving user. Traditional exhaustive search is too slow for real-time use.
+
+## Formulating as an MDP
+
+We define the beam management problem as a Markov Decision Process:
+
+- **State**: Recent RSRP measurements across a subset of beams + user velocity estimate
+- **Action**: Select one of 64 candidate beams from the codebook
+- **Reward**: Achieved spectral efficiency minus beam training overhead
+
+## DQN Approach
+
+Deep Q-Network learns a Q-function mapping (state, action) → expected return. Works well for discrete action spaces like beam selection.
+
+### Strengths
+- Simple to implement
+- Stable with experience replay and target networks
+
+### Weaknesses
+- Overestimates Q-values with large action spaces
+- Slow to explore in high-dimensional beam codebooks
+
+## PPO Approach
+
+Proximal Policy Optimization directly learns a policy π(action|state) using clipped surrogate objectives.
+
+### Strengths
+- More stable training with clipped updates
+- Better sample efficiency in our experiments
+- Naturally handles stochastic policies for exploration
+
+## Experimental Comparison
+
+On a 64×16 ULA antenna array with 256-beam codebook, mobile user at 30 km/h:
+
+| Method    | Spectral Efficiency | Convergence |
+|-----------|--------------------:|------------:|
+| Exhaustive | 100% (oracle)      | N/A         |
+| DQN       | 91%                 | 800 episodes|
+| PPO       | 94%                 | 500 episodes|
+| Random    | 42%                 | N/A         |
+
+## Conclusion
+
+PPO outperforms DQN in both final performance and convergence speed for beam management, at the cost of slightly higher implementation complexity. Both approaches dramatically outperform random selection and avoid the O(N) overhead of exhaustive search.
